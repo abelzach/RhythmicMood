@@ -32,8 +32,9 @@ else:
 class EmotionProcessor:
 	def recv(self, frame):
 		frm = frame.to_ndarray(format="bgr24")
+		#OpenCv works with bgr format
 
-		##############################
+		#below code is same as the code in ../Emotion detection/inference.py
 		frm = cv2.flip(frm, 1)
 
 		res = holis.process(cv2.cvtColor(frm, cv2.COLOR_BGR2RGB))
@@ -68,6 +69,7 @@ class EmotionProcessor:
 			print(pred)
 			cv2.putText(frm, pred, (50,50),cv2.FONT_ITALIC, 1, (255,0,0),2)
 
+			#saving the emotion
 			np.save("emotion.npy", np.array([pred]))
 
 			
@@ -78,24 +80,24 @@ class EmotionProcessor:
 		drawing.draw_landmarks(frm, res.right_hand_landmarks, hands.HAND_CONNECTIONS)
 
 
-		##############################
-
 		return av.VideoFrame.from_ndarray(frm, format="bgr24")
 
 lang = st.text_input("Language")
-singer = st.text_input("Artist")
+artist = st.text_input("Artist")
 
-if lang and singer and st.session_state["run"] != "false":
+if lang and artist and st.session_state["run"] != "false":
 	webrtc_streamer(key="key", desired_playing_state=True,
 				video_processor_factory=EmotionProcessor)
 
-btn = st.button("Recommend me songs")
+btn = st.button("Recommend songs")
 
 if btn:
 	if not(emotion):
+		#Needs to record emotion first before recommending songs
 		st.warning("Please let me capture your emotion first")
 		st.session_state["run"] = "true"
 	else:
-		webbrowser.open(f"https://www.youtube.com/results?search_query={lang}+{emotion}+song+{singer}")
+		webbrowser.open(f"https://www.youtube.com/results?search_query={lang}+{emotion}+song+{artist}")
+		#Opens a youtube page with the search query as language + emotion + song + artist
 		np.save("emotion.npy", np.array([""]))
 		st.session_state["run"] = "false"
